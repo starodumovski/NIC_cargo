@@ -1,7 +1,7 @@
 from cargo.Base.OneCargo import OneCargo
 import numpy as np
 from typing import List
-from six.moves import reduce
+import six
 
 class GA:
     def __init__(self) -> None:
@@ -37,8 +37,8 @@ class Individual:
     X
     '''
     def __init__(self, cargo_list_: List[OneCargo]) -> None:
-        self.car_dims = [3 * 100 * 10, 1.9 * 100 * 10, 2 * 100 * 10]
-        self.car_volume = reduce(lambda x, y: x*y, self.car_dims)
+        self.car_dims = [3 * 100 * 10, 1.9 * 100 * 10, 2 * 100 * 10] # mm
+        self.car_volume = int(six.moves.reduce(lambda x, y: x*y, self.car_dims)) # mm^3
         self.gens_sequence = []
         self.cargo_list: list(OneCargo) = cargo_list_
         self.weight_prob = []
@@ -74,7 +74,7 @@ class Individual:
 class Population:
     def __init__(self, fname: str, size_: int = None) -> None:
         self.POPULATION_SIZE = size_ if size_ is not None else 20
-        self.car_dims = [3 * 100 * 10, 1.9 * 100 * 10, 2 * 100 * 10]
+        self.car_dims = [3 * 100 * 10, 1.9 * 100 * 10, 2 * 100 * 10] 
         self.population : list(Individual) | None = None
         self.cargo_list: list(OneCargo) = []
         self.fname = fname

@@ -3,15 +3,15 @@ from cargo.GA import Population, Individual
 # from ..Cargo.cargo.Base.OneCargo import OneCargo
 import numpy as np
 from random import randint
+# from Cargo.cargo.Base.OneCargo import OneCargo
+
+from cargo.Base.OneCargo import OneCargo
 
 
+data = ['1', '2', '3', '1']
+one = OneCargo(*data)
 
-# import suds
-
-# data = ['1', '2', '3', '1']
-# one = OneCargo(*data)
-
-# print(one.measure, one.weight, one.dim_restricted)
+print(one.measure, one.weight, one.dim_restricted)
 
 # data_np = []
 # for i in range(6):
@@ -27,4 +27,5 @@ from random import randint
 population = Population('/home/starodumovski/VSProjects/NIC/project/goods.csv')
 
 individual = Individual(population.cargo_list)
-individual.calculate_probabilities()
+
+
