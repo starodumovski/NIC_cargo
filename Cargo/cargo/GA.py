@@ -1,6 +1,7 @@
 from cargo.Base.OneCargo import OneCargo
 import numpy as np
 from typing import List
+from six.moves import reduce
 
 class GA:
     def __init__(self) -> None:
@@ -37,6 +38,7 @@ class Individual:
     '''
     def __init__(self, cargo_list_: List[OneCargo]) -> None:
         self.car_dims = [3 * 100 * 10, 1.9 * 100 * 10, 2 * 100 * 10]
+        self.car_volume = reduce(lambda x, y: x*y, self.car_dims)
         self.gens_sequence = []
         self.cargo_list: list(OneCargo) = cargo_list_
         self.weight_prob = []
