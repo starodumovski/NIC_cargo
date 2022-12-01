@@ -14,11 +14,33 @@ class GA:
 
 
 class Individual:
+    '''
+    We are placing all objects in such bounded 3d space:
+            Z__________________________         operands:
+           /|                         /|            -1 : move forward on X
+          / |                        / |            -2 : move forward on Y
+         /  |                       /  |            -3 : move forward on Z
+        /   |                      /   |
+       /    |                     /    |        All axis have magnetic effect:
+      /     |                    /     |            so a point in space tends to 0
+     /      |                   /      |
+    /__________________________/       |
+    |      *|__ __ __ __ __ __ |__ __ _|Y
+    |      / (0, 0, 0)         |      /
+    |     /                    |     /
+    |    /                     |    /
+    |   /                      |   /
+    |  /                       |  /
+    | /                        | /
+    |/_________________________|/
+    X
+    '''
     def __init__(self, cargo_list_: List[OneCargo]) -> None:
         self.car_dims = [3 * 100 * 10, 1.9 * 100 * 10, 2 * 100 * 10]
         self.gens_sequence = []
         self.cargo_list: list(OneCargo) = cargo_list_
         self.weight_prob = []
+        self.operand = {-1 : 'move_Ox', -2 : 'move_Oy', -3 : 'move_Oz'}
 
     def mutate():
         pass
@@ -35,6 +57,7 @@ class Individual:
         return fitness_score
 
     def generate_individual(self, weights: bool = False):
+        # TODO: generate possible individual using the numpy.choice
         pass
 
     def calculate_probabilities(self):
