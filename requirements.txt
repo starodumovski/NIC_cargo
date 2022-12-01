@@ -1,0 +1,2 @@
+-e git+ssh://git@github.com/starodumovski/NIC_cargo.git@7bb2b8f8b486da9f56aa682765d3b4b9b36e7902#egg=cargo&subdirectory=Cargo
+numpy==1.23.5
