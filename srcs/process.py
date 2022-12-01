@@ -4,6 +4,10 @@ from cargo.GA import Population, Individual
 import numpy as np
 from random import randint
 
+
+
+# import suds
+
 # data = ['1', '2', '3', '1']
 # one = OneCargo(*data)
 
