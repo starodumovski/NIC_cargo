@@ -8,4 +8,4 @@ setup(name='cargo',
       author_email='*@innopolis.university',
       license='MIT',
       packages=['cargo'],
-      zip_safe=False)
+      zip_safe=True)
