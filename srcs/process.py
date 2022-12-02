@@ -27,5 +27,11 @@ print(one.measure, one.weight, one.dim_restricted)
 population = Population('/home/starodumovski/VSProjects/NIC/project/goods.csv')
 
 individual = Individual(population.cargo_list)
+for i, x in enumerate(individual.cargo_list):
+    print(x.measure, "->", x.weight, ":", "{:.4f}".format(individual.volume_prob[i]))
+print(individual.get_cargo_sequence(use_weights=True,strict_order=True))
+print(individual.get_cargo_sequence(use_weights=True))
+print(individual.get_cargo_sequence())
+print(individual.get_cargo_sequence(strict_order=True))
 
 
