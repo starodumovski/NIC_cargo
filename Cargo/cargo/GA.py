@@ -1,6 +1,7 @@
 from cargo.Base.OneCargo import OneCargo
+from cargo.Base.Dimension import Dimension
 import numpy as np
-from typing import List
+from typing import List, Tuple
 import six
 
 class GA:
@@ -37,9 +38,10 @@ class Individual:
     X
     '''
     def __init__(self, cargo_list_: List[OneCargo]) -> None:
-        self.car_dims = [3 * 100 * 10, 1.9 * 100 * 10, 2 * 100 * 10] # mm
+        self.car_dims = Dimension([3 * 100 * 10, 1.9 * 100 * 10, 2 * 100 * 10]) # mm
         self.car_volume = int(six.moves.reduce(lambda x, y: x*y, self.car_dims)) # mm^3
-        self.gens_sequence = []
+        self.chromosome = []
+        self.space_to_fill = set()
         self.cargo_list: List[OneCargo] = cargo_list_
         self.weight_prob = []
         self.volume_prob = []
@@ -67,9 +69,27 @@ class Individual:
 
     # TODO: how to fill the car with considering spaces left (where to put it form start)
     def generate_individual(self, weights: bool = False):
-        # TODO: generate possible individual using the numpy.choice
+        # self.chromosome = []
+        # self.space_to_fill = set()
+        self.space_to_fill.add([{0: (0, 0, 0), 1: tuple(*self.car_dims)}])
         order_to_load = self.get_cargo_sequence()
-        pass
+
+        for cargo_idx in order_to_load:
+            for available_space in self.space_to_fill:
+                if self.is_fitted(cargo_dims=self.cargo_list[cargo_idx].dimensions,
+                space_dims=available_space):
+                    pass
+
+    def is_fitted(self, cargo_dims: Dimension, space_dims: dict(Dimension)):
+        for _ in range(6):
+            ch = space_dims[0].__add__(cargo_dims, full=True)
+            print(ch)
+            if ch <= space_dims[1]:
+                print(cargo_dims)
+                return True
+            else:
+                cargo_dims.rotate()
+        return False
 
     def calculate_probabilities(self):
         # here it is possible to say if we have no chance to pack all
@@ -77,7 +97,7 @@ class Individual:
         all_volume = 0
         for i, cargo in enumerate(self.cargo_list):
             self.weight_prob.append(cargo.weight)
-            self.volume_prob.append(int(six.moves.reduce(lambda x, y: x * y, cargo.measure)))
+            self.volume_prob.append(cargo.volume)
             all_weight += cargo.weight
             all_volume += self.volume_prob[i]
         self.weight_prob = list(map(lambda x: x/all_weight, self.weight_prob))

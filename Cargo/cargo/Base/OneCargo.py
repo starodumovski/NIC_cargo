@@ -1,11 +1,17 @@
 
+from cargo.Base.Dimension import Dimension
+import six
+
 class OneCargo:
     def __init__(self, dim_1:float, dim_2:float, dim_3:float, weight:float, dim_restricted = None) -> None:
         try:
-            self.measure = list(map(float, [dim_1, dim_2, dim_3]))
+            self.dimensions = Dimension(list(map(float, [dim_1, dim_2, dim_3])))
         except ValueError as e:
             print(e, "dimensions")
             exit()
+        
+        self.volume = int(six.moves.reduce(lambda x, y: x * y, self.dimensions))
+
         try:
             self.weight = float(weight)
         except ValueError as e:
@@ -27,11 +33,11 @@ class OneCargo:
             self.upd_rotation_idx()
         else:
             tmp_idx = idx_
-        tmp_el = self.measure[tmp_idx]
+        tmp_el = self.dimensions[tmp_idx]
         
-        self.measure = self.measure[:tmp_idx] + self.measure[tmp_idx + 1:]
-        self.measure.reverse()
-        self.measure.insert(tmp_idx, tmp_el)
+        self.dimensions = self.dimensions[:tmp_idx] + self.dimensions[tmp_idx + 1:]
+        self.dimensions.reverse()
+        self.dimensions.insert(tmp_idx, tmp_el)
 
     def upd_rotation_idx(self):
         self.rotation_idx = (self.rotation_idx + 1) % 6
