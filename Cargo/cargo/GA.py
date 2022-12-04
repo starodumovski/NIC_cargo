@@ -76,20 +76,9 @@ class Individual:
 
         for cargo_idx in order_to_load:
             for available_space in self.space_to_fill:
-                if self.is_fitted(cargo_dims=self.cargo_list[cargo_idx].dimensions,
-                space_dims=available_space):
-                    pass
-
-    def is_fitted(self, cargo_dims: Dimension, space_dims: dict(Dimension)):
-        for _ in range(6):
-            ch = space_dims[0].__add__(cargo_dims, full=True)
-            print(ch)
-            if ch <= space_dims[1]:
-                print(cargo_dims)
-                return True
-            else:
-                cargo_dims.rotate()
-        return False
+                to_load = self.cargo_list[cargo_idx].is_fitted(space_dims=available_space)
+                if to_load is not None:
+                    self.chromosome.append({'cargo':cargo_idx, 'position': available_space})
 
     def calculate_probabilities(self):
         # here it is possible to say if we have no chance to pack all

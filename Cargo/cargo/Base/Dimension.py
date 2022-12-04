@@ -18,9 +18,13 @@ class MetaFoo(type):
                 yield attr
 
 class Dimension(metaclass=MetaFoo):
-    def __init__(self, x_y_z: List[int]):
+    def __init__(self, x_y_z: List[int], dim_restricted = None):
         self.x_y_z = x_y_z
-        self.rotation_idx = 0
+        self.dim_restricted = dim_restricted if str(dim_restricted).isdigit() else None
+        if dim_restricted is None:
+            self.rotations_available = [i for i in range(6)]
+        else:
+            self.rotations_available = [0, self.dim_restricted * 2 + 1]
 
     def __eq__(self, other):
         if type(other) is type(self):
@@ -65,17 +69,12 @@ class Dimension(metaclass=MetaFoo):
     def __iter__(self):
         return DimensionIterator(self)
 
-    def rotate(self, idx_: int = None):
-        if idx_ is None:
-            tmp_idx = self.rotation_idx % 3
-            self.upd_rotation_idx()
-        else:
-            tmp_idx = idx_
-        tmp_el = self.x_y_z[tmp_idx]
-        
-        self.x_y_z = self.x_y_z[:tmp_idx] + self.x_y_z[tmp_idx + 1:]
-        self.x_y_z.reverse()
-        self.x_y_z.insert(tmp_idx, tmp_el)
+    def rotate(self, rotation_idx: int):
+        to_return = self.x_y_z[- (rotation_idx//2):] + self.x_y_z[:- (rotation_idx//2)]
+        to_return = to_return[0:1] + to_return[1:][:: -1 if rotation_idx % 2 else 1]
+        return Dimension(to_return)
     
-    def upd_rotation_idx(self):
-        self.rotation_idx = (self.rotation_idx + 1) % 6
+    def has_restricted_dim(self):
+        if self.dim_restricted is None:
+            return False
+        return True

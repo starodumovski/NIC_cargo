@@ -11,7 +11,7 @@ from cargo.Base.Dimension import Dimension
 data = ['1', '2', '3', '1']
 one = OneCargo(*data)
 
-print(one.dimensions, one.weight, one.dim_restricted)
+print(one.dimensions, one.weight)
 
 # data_np = []
 # for i in range(6):
@@ -36,8 +36,18 @@ individual = Individual(population.cargo_list)
 
 print("Fitness")
 print(individual.cargo_list[0].dimensions)
-print(individual.is_fitted(individual.cargo_list[0].dimensions, {0: Dimension([0, 0, 0]), 1: Dimension([2, 5, 5])}))
-print(individual.cargo_list[0].dimensions)
+# print(individual.is_fitted(individual.cargo_list[0].dimensions, {0: Dimension([0, 0, 0]), 1: Dimension([2, 5, 5])}))
+# print(individual.cargo_list[0].dimensions)
+
+
+print(individual.cargo_list[0].is_fitted({0: Dimension([0, 0, 0]), 1: Dimension([2, 1, 5])}))
+
+array = [1, 2, 3]
+
+for i in range(6):
+    tmp_arr = array[- (i//2):] + array[:- (i//2)]
+    tmp_arr = tmp_arr[0:1] + tmp_arr[1:][:: -1 if i % 2 else 1]
+    print(tmp_arr)
 
 
 
