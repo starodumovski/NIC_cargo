@@ -71,7 +71,7 @@ class Individual:
     def generate_individual(self, weights: bool = False):
         # self.chromosome = []
         # self.space_to_fill = set()
-        self.space_to_fill.add([{0: (0, 0, 0), 1: tuple(*self.car_dims)}])
+        self.space_to_fill.add([{0: Dimension([0, 0, 0]), 1: Dimension(self.car_dims)}])
         order_to_load = self.get_cargo_sequence()
 
         for cargo_idx in order_to_load:
