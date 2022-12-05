@@ -78,7 +78,7 @@ class Individual:
             for available_space in self.space_to_fill:
                 to_load = self.cargo_list[cargo_idx].is_fitted(space_dims=available_space)
                 if to_load is not None:
-                    self.chromosome.append({'cargo':cargo_idx, 'position': available_space})
+                    self.chromosome.append({'cargo':cargo_idx, 'position': available_space, 'rotation': to_load})
 
     def calculate_probabilities(self):
         # here it is possible to say if we have no chance to pack all
