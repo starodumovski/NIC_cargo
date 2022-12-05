@@ -25,6 +25,16 @@ class Dimension(metaclass=MetaFoo):
             self.rotations_available = [i for i in range(6)]
         else:
             self.rotations_available = [0, self.dim_restricted * 2 + 1]
+    
+    def rotate(self, rotation_idx: int):
+        to_return = self.x_y_z[- (rotation_idx//2):] + self.x_y_z[:- (rotation_idx//2)]
+        to_return = to_return[0:1] + to_return[1:][:: -1 if rotation_idx % 2 else 1]
+        return Dimension(to_return)
+    
+    def has_restricted_dim(self):
+        if self.dim_restricted is None:
+            return False
+        return True
 
     def __eq__(self, other):
         if type(other) is type(self):
@@ -68,13 +78,3 @@ class Dimension(metaclass=MetaFoo):
     
     def __iter__(self):
         return DimensionIterator(self)
-
-    def rotate(self, rotation_idx: int):
-        to_return = self.x_y_z[- (rotation_idx//2):] + self.x_y_z[:- (rotation_idx//2)]
-        to_return = to_return[0:1] + to_return[1:][:: -1 if rotation_idx % 2 else 1]
-        return Dimension(to_return)
-    
-    def has_restricted_dim(self):
-        if self.dim_restricted is None:
-            return False
-        return True

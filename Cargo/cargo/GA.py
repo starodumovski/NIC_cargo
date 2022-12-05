@@ -58,7 +58,7 @@ class Individual:
         '''
         F(x, y, z) = (x_max - x_min) * (y_max - y_min) * (y_max - y_min)
         or
-        F(x, y, z) = SUM(m_i * x_i * y_i * z_i)/car_volume * 100  #[percentage]
+        F(x, y, z) = SUM(m_i * x_i * y_i * z_i)/car_volume * 100 + number_of_loaded/number_of_all_ * 100 #[percentage]
         '''
         fitness_score = 0
         x_dim, y_dim, z_dim = 0, 0, 0
