@@ -1,17 +1,19 @@
-from cargo.Base.OneCargo import OneCargo
-from cargo.Base.Dimension import Dimension
+from .Base.OneCargo import OneCargo
+from .Base.Dimension import Dimension
 import numpy as np
 from typing import List, Tuple
 import six
+from random import randint
+
 
 class GA:
-    def __init__(self) -> None:
+    def __init__(self, size_of) -> None:
         pass
 
-    def mutate():
+    def mutate(self):
         pass
 
-    def crossover():
+    def crossover(self):
         pass
 
 
@@ -37,21 +39,54 @@ class Individual:
     |/_________________________|/
     X
     '''
-    def __init__(self, cargo_list_: List[OneCargo]) -> None:
-        self.car_dims = Dimension([3 * 100 * 10, 1.9 * 100 * 10, 2 * 100 * 10]) # mm
-        self.car_volume = int(six.moves.reduce(lambda x, y: x*y, self.car_dims)) # mm^3
-        self.chromosome = []
-        self.space_to_fill = set()
-        self.cargo_list: List[OneCargo] = cargo_list_
-        self.weight_prob = []
-        self.volume_prob = []
 
-        # TODO: reduce if not needed
-        self.operand = {-1 : 'move_Ox', -2 : 'move_Oy', -3 : 'move_Oz'} 
+    def __init__(self, car_length, car_width, car_height, cargo_list: List[OneCargo]):
+        self.car_space = [[car_height] * car_width for _ in range(car_length)]
+        self.cargo_list = sorted(cargo_list, key=lambda cargo: -cargo.get_area())
+        self.car_space = self.packing_into_truck(self.cargo_list.copy(), self.car_space)
 
-        self.calculate_probabilities()
+    def packing_into_truck(self, remaining_cargos, car_space):
+        if len(remaining_cargos) == 0:
+            return car_space
+        cargo = remaining_cargos.pop(0)
+        x, y = self.find_spot(car_space, cargo)
+        if x is not None and y is not None:
+            self.put_cargo(x, y, cargo, car_space)
+            return self.packing_into_truck(remaining_cargos, car_space)
+        else:
+            for r in cargo.get_rotations():
+                x, y = self.find_spot(car_space, r)
+                if x and y:
+                    self.put_cargo(x, y, cargo, car_space)
+                    return self.packing_into_truck(remaining_cargos, car_space)
 
-    def mutate():
+    def put_cargo(self, x, y, cargo, cargo_space):
+        length = cargo.dim1
+        width = cargo.dim2
+        height = cargo.dim3
+        for i in range(x, x + length):
+            for j in range(y, y + width):
+                cargo_space[i][j] -= height
+
+    def find_spot(self, cargo_space, cargo):
+        length = cargo.dim1
+        width = cargo.dim2
+        height = cargo.dim3
+        for i in range(len(cargo_space) - length):
+            for j in range(len(cargo_space[0]) - width):
+                is_possible = True
+                z, k = i, j
+                while z < length + i and is_possible:
+                    while k < width + j and is_possible:
+                        if cargo_space[z][k] - height < 0:
+                            is_possible = False
+                        k += 1
+                    z += 1
+                if is_possible:
+                    return i, j
+        return None, None
+
+    def mutate(self):
         pass
 
     def calculate_fitness_score(self):
@@ -69,16 +104,8 @@ class Individual:
 
     # TODO: how to fill the car with considering spaces left (where to put it form start)
     def generate_individual(self, weights: bool = False):
-        # self.chromosome = []
-        # self.space_to_fill = set()
-        self.space_to_fill.add([{0: Dimension([0, 0, 0]), 1: Dimension(self.car_dims)}])
-        order_to_load = self.get_cargo_sequence()
-
-        for cargo_idx in order_to_load:
-            for available_space in self.space_to_fill:
-                to_load = self.cargo_list[cargo_idx].is_fitted(space_dims=available_space)
-                if to_load is not None:
-                    self.chromosome.append({'cargo':cargo_idx, 'position': available_space})
+        if not weights:
+            self.car_space = self.packing_into_truck(self.car_space, self.cargo_list)
 
     def calculate_probabilities(self):
         # here it is possible to say if we have no chance to pack all
@@ -89,8 +116,8 @@ class Individual:
             self.volume_prob.append(cargo.volume)
             all_weight += cargo.weight
             all_volume += self.volume_prob[i]
-        self.weight_prob = list(map(lambda x: x/all_weight, self.weight_prob))
-        self.volume_prob = list(map(lambda x: x/all_volume, self.volume_prob))
+        self.weight_prob = list(map(lambda x: x / all_weight, self.weight_prob))
+        self.volume_prob = list(map(lambda x: x / all_volume, self.volume_prob))
 
     def get_cargo_sequence(self, use_weights: bool = False, strict_order: bool = False):
         if strict_order:
@@ -98,35 +125,35 @@ class Individual:
                 cargo_prob_copy = self.weight_prob.copy()
             else:
                 cargo_prob_copy = self.volume_prob.copy()
-            cargo_prob_copy = {i : x for i, x in enumerate(cargo_prob_copy)}
+            cargo_prob_copy = {i: x for i, x in enumerate(cargo_prob_copy)}
             cargo_prob_copy = sorted(cargo_prob_copy, key=lambda x: cargo_prob_copy[x], reverse=True)
             return np.asarray([x for x in cargo_prob_copy])
         else:
             if use_weights:
-                return np.random.choice(np.arange(len(self.cargo_list)), 
-                                        len(self.weight_prob), 
+                return np.random.choice(np.arange(len(self.cargo_list)),
+                                        len(self.weight_prob),
                                         replace=False,
                                         p=self.weight_prob.copy())
             else:
-                return np.random.choice(np.arange(len(self.cargo_list)), 
-                                        len(self.weight_prob), 
+                return np.random.choice(np.arange(len(self.cargo_list)),
+                                        len(self.weight_prob),
                                         replace=False,
                                         p=self.volume_prob.copy())
 
         return np.random.choice()
         pass
 
+
 class Population:
-    def __init__(self, fname: str, size_: int = None) -> None:
-        self.POPULATION_SIZE = size_ if size_ is not None else 20
-        self.car_dims = [3 * 100 * 10, 1.9 * 100 * 10, 2 * 100 * 10] 
-        self.population : list(Individual) | None = None
+    def __init__(self, fname: str, size_: int = 20) -> None:
+        self.POPULATION_SIZE = size_
+        self.car_dims = [3 * 100 * 10, 1.9 * 100 * 10, 2 * 100 * 10]
+        self.population: list(Individual) | None = None
         self.cargo_list: list(OneCargo) = []
         self.fname = fname
 
         self.create_cargo_list()
 
-    
     def create_cargo_list(self):
         for cargo in np.genfromtxt(self.fname, delimiter=','):
             self.cargo_list.append(OneCargo(*cargo))
