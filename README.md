@@ -1,4 +1,4 @@
-# Nature Inspired Computating
+# Nature Inspired Computing
 
 ## Automated Process of Loading the Cargo
 
