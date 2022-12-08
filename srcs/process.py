@@ -1,29 +1,19 @@
-
-import six
-from random import randint
-import numpy as np
-from NIC_cargo.Cargo.cargo.Base.OneCargo import OneCargo
 from NIC_cargo.Cargo.cargo.GA import GA
+from NIC_cargo.Cargo.cargo.Base.GenerateData import generate_data
 
-car_dims = [5, 7, 6]
-evolution = GA(car_dims)
+car_dims = [6, 7, 6]
+fname = 'NIC_cargo/new_goods.csv'
+
+# Generate new data
+generate_data(car_dims, fname)
+
+evolution = GA(car_dims, fname=fname)
 best_one = evolution.evolution()
 
-print(best_one.gens)
+# print(best_one.gens)
+print([gen[0].index for gen in best_one.gens])
 print(len(best_one.gens))
-print(best_one.cargo_list)
+print([gen.index for gen in best_one.cargo_list])
 print(len(best_one.cargo_list))
 
 print(best_one.fitness())
-
-
-# data_np = []
-# car_v = six.moves.reduce(lambda x, y: x*y, car_dims)
-# while car_v > 0:
-#     data_tmp = [randint(1, 3), randint(1, 3), randint(1, 3)]
-#     car_v -= six.moves.reduce(lambda x, y: x*y, data_tmp)
-#     data_np.append(data_tmp)
-# print(data_np)
-#
-# np.savetxt('../goods.csv', data_np, delimiter=',')
-

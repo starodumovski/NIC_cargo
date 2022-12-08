@@ -1,18 +1,25 @@
 from .Base.OneCargo import OneCargo
-from .Base.Dimension import Dimension
-import numpy as np
-from typing import List, Tuple
-import six
+
+from typing import List
 from random import randint, choice
+
+import numpy as np
+
 
 
 class GA:
-    def __init__(self, car_dims, size_of=20, n_epochs=20) -> None:
-        self.population = Population(car_dims, size_=size_of)
+    '''
+    Class of Genetic Algorithm process with initial population and their lifecycle
+    '''
+    def __init__(self, car_dims, fname, size_of=20, n_epochs=20) -> None:
+        self.population = Population(car_dims, fname=fname, size_=size_of)
         self.size_of_population = size_of
         self.n_epochs = n_epochs
 
     def evolution(self):
+        '''
+        Lifecycle of initial population during number of epochs equals self.n_epochs 
+        '''
         self.population.create_initial_population()
         for i in range(self.n_epochs):
             self.mutate()
@@ -22,11 +29,32 @@ class GA:
         return self.population.population[0]
 
     def mutate(self):
+        '''
+        Mutation of the Individual (20% that mutation will be):
+            Mutation is a rotation of one of the cargo 
+            in the second half of the gens sequence and 
+            reloading all ones that follow the mutated one
+        '''
         for individual in self.population.population:
             if np.random.choice([True, False], p=[.2, .8]):
                 individual.mutate()
 
     def crossover(self):
+        '''
+        Crossover of the Individuals:
+            THe crossover is reloading the individuals 
+            in such a way that their crossover gens 
+            must stayed at the same place if it is possible
+
+        e.g.:                 
+                              |crossover|
+        parent_1:   [4, 5, 8, |  6, 3,  | 9, 1]
+        parent_2:   [5, 6, 9, |  8, 4,  | 1, 3]
+
+                              |the  same|
+        child_1:    [5, 6, 3, |  8, 4,  | 9, 1]
+        child_2:    [5, 9, 8, |  6, 3,  | 4, 1]
+        '''
         self.population.population = sorted(self.population.population, key=lambda x: -x.fitness()[0])
         size_of_half_population = len(self.population.population) // 2
         for i in range(0, size_of_half_population, 2):
@@ -34,6 +62,9 @@ class GA:
                 self.population.population.append(individual)
 
     def death(self):
+        '''
+        kill all individual that are not so good for now
+        '''
         self.population.population = sorted(
             self.population.population,
             key=lambda x: -x.fitness()[0]
@@ -43,15 +74,15 @@ class GA:
 class Individual:
     '''
     We are placing all objects in such bounded 3d space:
-            Z__________________________         operands:
-           /|                         /|            -1 : move forward on X
-          / |                        / |            -2 : move forward on Y
-         /  |                       /  |            -3 : move forward on Z
-        /   |                      /   |
-       /    |                     /    |        All axis have magnetic effect:
-      /     |                    /     |            so a point in space tends to 0
-     /      |                   /      |
-    /__________________________/       |
+    (a)     Z__________________________         (b) X = 6, Y = 5, Z = 3 
+           /|                         /|            Bounded space:
+          / |                        / |                  0  1  2  3  4 
+         /  |                       /  |              0 [[3, 3, 3, 3, 3],
+        /   |                      /   |              1  [3, 3, 3, 3, 3],
+       /    |                     /    |              2  [3, 3, 3, 3, 3],
+      /     |                    /     |              3  [3, 3, 3, 3, 3],
+     /      |                   /      |              4  [3, 3, 3, 3, 3],
+    /__________________________/       |              5  [3, 3, 3, 3, 3]]
     |      *|__ __ __ __ __ __ |__ __ _|Y
     |      / (0, 0, 0)         |      /
     |     /                    |     /
@@ -62,7 +93,6 @@ class Individual:
     |/_________________________|/
     X
     '''
-
     def __init__(self, car_length, car_width, car_height, cargo_list: List[OneCargo]):
         self.car_space = [[car_height] * car_width for _ in range(car_length)]
         self.car_dims = [car_length, car_width, car_height]
@@ -72,6 +102,9 @@ class Individual:
         self.gens = []
 
     def packing_into_truck(self, remaining_cargos, car_space):
+        '''
+        Load cargo in the car using the (b) notation
+        '''
         if len(remaining_cargos) == 0:
             return car_space
         cargo = remaining_cargos.pop(0)
@@ -88,6 +121,9 @@ class Individual:
         return self.packing_into_truck(remaining_cargos, car_space)
 
     def put_cargo(self, x, y, cargo, cargo_space):
+        '''
+        Load the one cargo and change available space
+        '''
         length = cargo.dim1
         width = cargo.dim2
         height = cargo.dim3
@@ -98,6 +134,10 @@ class Individual:
         self.gens.append((cargo, x, y, cargo_space[x][y] + height))
 
     def find_spot(self, cargo_space, cargo):
+        '''
+        Find the available place for the cargo:
+            If it exists, return coordinates here to load
+        '''
         length = cargo.dim1
         width = cargo.dim2
         height = cargo.dim3
@@ -117,6 +157,9 @@ class Individual:
         return None, None
 
     def fitness(self):
+        '''
+        F = SUM(m_i * x_i * y_i * z_i)/car_volume * 100 + number_of_loaded_cargo/number_of_all_cargo * 100 
+        '''
         f_score = []
         f = 0
         for cargo_tuple in self.gens:
@@ -130,6 +173,12 @@ class Individual:
         return f_score
 
     def mutate(self):
+        '''
+        Mutation process of an individual:
+            Mutation is a rotation of one of the cargo 
+            in the second half of the gens sequence and 
+            reloading all ones that follow the mutated one
+        '''
         index = randint(len(self.gens) // 2, len(self.gens) - 2)
         part_to_mutate = self.gens[index:]
         self.unload(part_to_mutate)
@@ -139,6 +188,21 @@ class Individual:
         self.car_space = self.packing_into_truck(part_to_mutate, self.car_space.copy())
 
     def crossover(self, other):
+        '''
+        Crossover of the Individuals:
+            THe crossover is reloading the individuals 
+            in such a way that their crossover gens 
+            must stayed at the same place if it is possible
+
+        e.g.:                 
+                              |crossover|
+        parent_1:   [4, 5, 8, |  6, 3,  | 9, 1]
+        parent_2:   [5, 6, 9, |  8, 4,  | 1, 3]
+
+                              |the  same|
+        child_1:    [5, 6, 3, |  8, 4,  | 9, 1]
+        child_2:    [5, 9, 8, |  6, 3,  | 4, 1]
+        '''
         common_len = min(len(self), len(other)) - 1
         to_cross = (max(common_len - 1, 0), common_len)
         must_have_gens_child_1 = [other.gens[i][0].index for i in to_cross]
@@ -163,68 +227,27 @@ class Individual:
         return child_1, child_2
 
     def unload(self, part_to_mutate):
+        '''
+        Function to unload some cargo to change the Individual
+        '''
         for cargo, x, y, _ in part_to_mutate:
             for i in range(x, x + cargo.dim1):
                 for j in range(y, y + cargo.dim2):
                     self.car_space[i][j] += cargo.dim3
 
-    def calculate_fitness_score(self):
-        '''
-        F(x, y, z) = (x_max - x_min) * (y_max - y_min) * (y_max - y_min)
-        or
-        F(x, y, z) = SUM(m_i * x_i * y_i * z_i)/car_volume * 100 + number_of_loaded/number_of_all_ * 100 #[percentage]
-        '''
-        fitness_score = 0
-        x_dim, y_dim, z_dim = 0, 0, 0
-        # TODO: calculating implementation
-        for element in self.gens_sequence:
-            pass
-        return fitness_score
-
-    # TODO: how to fill the car with considering spaces left (where to put it form start)
     def generate_individual(self, weights: bool = False):
         if not weights:
             self.car_space = self.packing_into_truck(self.cargo_list.copy(), self.car_space.copy())
-
-    def calculate_probabilities(self):
-        # here it is possible to say if we have no chance to pack all
-        all_weight = 0
-        all_volume = 0
-        for i, cargo in enumerate(self.cargo_list):
-            self.weight_prob.append(cargo.weight)
-            self.volume_prob.append(cargo.volume)
-            all_weight += cargo.weight
-            all_volume += self.volume_prob[i]
-        self.weight_prob = list(map(lambda x: x / all_weight, self.weight_prob))
-        self.volume_prob = list(map(lambda x: x / all_volume, self.volume_prob))
-
-    def get_cargo_sequence(self, use_weights: bool = False, strict_order: bool = False):
-        if strict_order:
-            if use_weights:
-                cargo_prob_copy = self.weight_prob.copy()
-            else:
-                cargo_prob_copy = self.volume_prob.copy()
-            cargo_prob_copy = {i: x for i, x in enumerate(cargo_prob_copy)}
-            cargo_prob_copy = sorted(cargo_prob_copy, key=lambda x: cargo_prob_copy[x], reverse=True)
-            return np.asarray([x for x in cargo_prob_copy])
-        else:
-            if use_weights:
-                return np.random.choice(np.arange(len(self.cargo_list)),
-                                        len(self.weight_prob),
-                                        replace=False,
-                                        p=self.weight_prob.copy())
-            else:
-                return np.random.choice(np.arange(len(self.cargo_list)),
-                                        len(self.weight_prob),
-                                        replace=False,
-                                        p=self.volume_prob.copy())
 
     def __len__(self):
         return len(self.gens)
 
 
 class Population:
-    def __init__(self, car_dims, fname: str = '/home/timur/University/NaturalInspiredComputing/team_task/NIC_cargo/goods.csv', size_: int = 20) -> None:
+    '''
+    Population class which will hold Individuals and keep all results
+    '''
+    def __init__(self, car_dims, fname: str = 'NIC_cargo/goods.csv', size_: int = 20) -> None:
         self.POPULATION_SIZE = size_
         self.cargo_list = []
         self.fname = fname
@@ -233,11 +256,17 @@ class Population:
         self.population = []
 
     def create_cargo_list(self):
+        '''
+        Retrieve list of cargo from the csv file
+        '''
         for i, cargo in enumerate(np.genfromtxt(self.fname, delimiter=',')):
             self.cargo_list.append(OneCargo(*list(map(int, cargo)), index=i))
         # TODO: correct dimensions
 
     def create_initial_population(self):
+        '''
+        Create initial population by generating Individuals
+        '''
         self.population = [Individual(*self.car_dims, self.cargo_list) for _ in range(self.POPULATION_SIZE)]
         for individual in self.population:
             individual.generate_individual()
