@@ -4,31 +4,21 @@ import six
 
 
 class OneCargo:
-    def __init__(self, dim1: int, dim2: int, dim3: int, weight: float = None, dim_restricted=None) -> None:
-        # try:
-        #     self.dimensions = Dimension(list(map(float, [x, y, z])),
-        #                                 dim_restricted if str(dim_restricted).isdigit() else None)
-        # except ValueError as e:
-        #     print(e, "dimensions")
-        #     exit()
-        #
-        # self.volume = int(six.moves.reduce(lambda x, y: x * y, self.dimensions))
-        #
-        # try:
-        #     self.weight = float(weight)
-        # except ValueError as e:
-        #     print(e, "weight")
-        #     exit()
-        # self.dim_restricted = dim_restricted if str(dim_restricted).isdigit() else None
+    def __init__(self, dim1: int, dim2: int, dim3: int, index: int, weight: float = None, dim_restricted=None) -> None:
         self.dim1, self.dim2, self.dim3 = dim1, dim2, dim3
+        self.index = index
 
-    def get_rotations(self):
+    def get_rotations(self, save_init=False):
         new_cargos = list(permutations([self.dim1, self.dim2, self.dim3]))
-        new_cargos.remove((self.dim1, self.dim2, self.dim3))
-        return [OneCargo(*r) for r in new_cargos]
+        if not save_init:
+            new_cargos.remove((self.dim1, self.dim2, self.dim3))
+        return [OneCargo(dim1=r[0], dim2=r[1], dim3=r[2], index=self.index) for r in new_cargos]
 
     def get_area(self):
         return self.dim1 * self.dim2
+
+    def get_volume(self):
+        return self.dim1 * self.dim2 * self.dim3
 
     def is_fitted(self, space_dims: dict[int, Dimension]):
         for i in self.dimensions.rotations_available:
@@ -39,7 +29,7 @@ class OneCargo:
         return None
 
     def __str__(self):
-        return f'{self.dim1} x {self.dim2} x {self.dim3}, Area: {self.get_area()}'
+        return f'{self.dim1} x {self.dim2} x {self.dim3}, Area: {self.get_area()}, Index: {self.index}'
 
     def __repr__(self):
-        return f'{self.dim1} x {self.dim2} x {self.dim3}, Area: {self.get_area()}'
+        return f'{self.dim1} x {self.dim2} x {self.dim3}, Area: {self.get_area()}, Index: {self.index}'
